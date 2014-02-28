@@ -2,25 +2,21 @@ AVL_TREE = avltree/avltree.o
 RB_TREE = rbtree/rbtree.o rbtree/rbwrap.o
 BENCH = bench/bench.o $(AVL_TREE) $(RB_TREE)
 EXAMPLE = example/avl_example.o $(AVL_TREE) 
-TEST = test/avltree_test.o $(AVL_TREE) $(RB_TREE)
 
 PROGRAMS = \
 	avltree_example \
 	bench_avl_rb \
-	avltree_test \
 	
 LDFLAGS = -pthread
 CFLAGS = \
 	-g -D_GNU_SOURCE \
 	-I. -I./avltree -I./rbtree \
 	-fPIC \
-    -O2 \
-    #-D__AVL_DEBUG \
+	-O2 \
+	#-D__AVL_DEBUG \
 	
 all: $(PROGRAMS)
 
-avltree_test: $(TEST)
-	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 avltree_example: $(EXAMPLE)
 	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 bench_avl_rb: $(BENCH)
