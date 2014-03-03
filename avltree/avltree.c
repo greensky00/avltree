@@ -24,19 +24,14 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#ifdef __AVL_DEBUG
-#include <stdio.h>
-#include <assert.h>
-#endif
-
 #ifndef INLINE
-#ifdef __APPLE__
-    #define INLINE extern inline
-#elif __linux
-    #define INLINE __inline
-#else
-    #define INLINE
-#endif
+    #ifdef __APPLE__
+        #define INLINE extern inline
+    #elif __linux__
+        #define INLINE __inline
+    #else
+        #define INLINE
+    #endif
 #endif
 
 #include "avltree.h"
@@ -53,13 +48,32 @@ INLINE void avl_set_parent(struct avl_node *node, struct avl_node *parent)
 }
 
 #define avl_parent(node) \
-    ((struct avl_node *)((unsigned long)(node)->parent & ~0x3))
+        ((struct avl_node *)((unsigned long)(node)->parent & ~0x3))
+
+#ifdef _AVL_SEPARATE_PARENT_BF
+    #define avl_bf(node) ((node)->bf)
+#else
+    #define avl_bf(node) (((int)((unsigned long)(node)->parent & 0x3)) - 1)
+#endif
+
+#ifdef __AVL_DEBUG
+#include <stdio.h>
+#include <assert.h>
+#include "avltree_debug.h"
+#else
+#define __AVL_DEBUG_BF_CHECK(bf)
+#define __AVL_DEBUG_LL(p, c)
+#define __AVL_DEBUG_RR(p, c)
+#define __AVL_DEBUG_BAL_BEGIN(node, bf, height_diff)
+#define __AVL_DEBUG_BAL_END(node)
+#define __AVL_DEBUG_INSERT(node)
+#define __AVL_DEBUG_REMOVE(node)
+#define __AVL_DEBUG_DISPLAY(tree)
+#endif
 
 INLINE void avl_set_bf(struct avl_node *node, int bf)
 {
-#ifdef __AVL_DEBUG
-    assert(bf >= -1 && bf <= 1);
-#endif
+    __AVL_DEBUG_BF_CHECK(bf);
 
 #ifdef _AVL_SEPARATE_PARENT_BF
     node->bf = bf;
@@ -69,59 +83,11 @@ INLINE void avl_set_bf(struct avl_node *node, int bf)
 #endif
 }
 
-#ifdef _AVL_SEPARATE_PARENT_BF
-    #define avl_bf(node) ((node)->bf)
-#else
-    #define avl_bf(node) (((int)((unsigned long)(node)->parent & 0x3)) - 1)
-#endif
-
-#ifdef __AVL_DEBUG
-char space[256];
-char *_space(int n)
-{
-    int i;
-    for (i=0;i<n;++i) space[i]=' ';
-    space[i] = 0;
-    return space;
-}
-
-void _avl_display(struct avl_node *p, int depth)
-{
-    if(p)
-    {
-        if (p->left) assert(avl_parent(p->left) == p);
-        _avl_display(p->left, depth+1);
-
-#ifdef _AVL_NEXT_POINTER
-        printf("%s[%d %08lx %08lx %08lx %08lx %08lx %08lx %2d]\n",
-            _space(depth), depth, (unsigned long)p,
-            (unsigned long)avl_parent(p),
-            (unsigned long)p->left, (unsigned long)p->right,
-            (unsigned long)p->prev, (unsigned long)p->next,
-            avl_bf(p));
-#else
-        printf("%s[%d %08lx %08lx %08lx %08lx %2d]\n",
-            _space(depth), depth, (unsigned long)p,
-            (unsigned long)avl_parent(p),
-            (unsigned long)p->left, (unsigned long)p->right,
-            avl_bf(p));
-#endif
-
-        if (p->right) assert(avl_parent(p->right) == p);
-        _avl_display(p->right, depth+1);
-    }
-}
-#endif
-
 INLINE struct avl_node* _rotate_LL(struct avl_node *parent)
 {
     struct avl_node *child = parent->left;
 
-#ifdef __AVL_DEBUG
-    printf("LL %08lx parent (%d) %08lx child (%d)\n",
-        (unsigned long)parent, avl_bf(parent),
-        (unsigned long)child, avl_bf(child));
-#endif
+    __AVL_DEBUG_LL(parent, child);
 
     avl_set_bf(parent, avl_bf(parent)+1);
     avl_set_bf(child, avl_bf(child)+1);
@@ -139,11 +105,7 @@ INLINE struct avl_node* _rotate_RR(struct avl_node *parent)
 {
     struct avl_node *child = parent->right;
 
-#ifdef __AVL_DEBUG
-    printf("RR %08lx parent (%d) %08lx child (%d)\n",
-        (unsigned long)parent, avl_bf(parent),
-        (unsigned long)child, avl_bf(child));
-#endif
+    __AVL_DEBUG_RR(parent, child);
 
     avl_set_bf(parent, avl_bf(parent)-1);
     avl_set_bf(child, avl_bf(child)-1);
@@ -177,10 +139,7 @@ struct avl_node* _balance_tree(struct avl_node *node, int bf)
 {
     int height_diff= _get_balance(node) + bf;
 
-#ifdef __AVL_DEBUG
-    printf("balance node %08lx (%d + %d = %d)\n",
-        (unsigned long)node, avl_bf(node), bf, height_diff);
-#endif
+    __AVL_DEBUG_BAL_BEGIN(node, bf, height_diff);
 
     if(height_diff < -1 && node->left != NULL) {
         // balance left sub tree
@@ -202,10 +161,7 @@ struct avl_node* _balance_tree(struct avl_node *node, int bf)
         avl_set_bf(node, avl_bf(node) + bf);
     }
 
-#ifdef __AVL_DEBUG
-    printf("balance node end %08lx (%d)\n",
-        (unsigned long)node, avl_bf(node));
-#endif
+    __AVL_DEBUG_BAL_END(node);
 
     return node;
 }
@@ -377,12 +333,10 @@ struct avl_node* avl_insert(struct avl_tree *tree,
                             struct avl_node *node,
                             avl_cmp_func *func)
 {
+    __AVL_DEBUG_INSERT(node);
+
     struct avl_node *p=NULL,*cur;
     int cmp, bf, bf_old;
-
-#ifdef __AVL_DEBUG
-    printf("insert %08lx\n", (unsigned long)node);
-#endif
 
     cur = tree->root;
     while(cur)
@@ -475,9 +429,7 @@ struct avl_node* avl_insert(struct avl_tree *tree,
         node = p;
     }
 
-#ifdef __AVL_DEBUG
-    _avl_display(tree->root, 0);
-#endif
+    __AVL_DEBUG_DISPLAY(tree);
 
     return node;
 }
@@ -485,15 +437,13 @@ struct avl_node* avl_insert(struct avl_tree *tree,
 struct avl_node* avl_remove(struct avl_tree *tree,
                             struct avl_node *node)
 {
+    __AVL_DEBUG_REMOVE(node);
+
     struct avl_node *p=NULL,*cur, *next=NULL;
     int cmp, bf, bf_old;
 
     // not found
     if (node == NULL) return NULL;
-
-#ifdef __AVL_DEBUG
-    printf("remove %08lx\n", (unsigned long)node);
-#endif
 
 #ifdef _AVL_NEXT_POINTER
     if (node->prev) node->prev->next = node->next;
@@ -614,9 +564,7 @@ struct avl_node* avl_remove(struct avl_tree *tree,
         cur = p;
     }
 
-#ifdef __AVL_DEBUG
-    _avl_display(tree->root, 0);
-#endif
+    __AVL_DEBUG_DISPLAY(tree);
 
     return next;
 }

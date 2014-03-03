@@ -31,9 +31,6 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "stddef.h"
 #include "stdint.h"
 
-//#define _AVL_NEXT_POINTER
-//#define _AVL_SEPARATE_PARENT_BF
-
 struct avl_node {
     struct avl_node *parent, *left, *right;
 
