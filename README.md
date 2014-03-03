@@ -24,43 +24,43 @@ We estimated the performance of our implementation compared to Red Black Tree im
 
 * Red Black Tree (in Linux)
 
-Insertion: 3,468,228 ops/sec
+Insertion: 3,798,630 ops/sec
 
-Retrieval: 5,607,483 ops/sec
+Retrieval: 5,905,865 ops/sec
 
-Range scan: 78,506,698 ops/sec
+Range scan: 30,821,390 ops/sec
 
-Removal: 49,582,187 ops/sec
+Removal: 43,072,629 ops/sec
 
 * AVL-Tree 
 
-Insertion: 6,802,096 ops/sec (96.15%)
+Insertion: 6,993,814 ops/sec (84.11%)
 
-Retrieval: 6,050,063 ops/sec (7.89%)
+Retrieval: 5,938,835 ops/sec (0.56%)
 
-Range scan: 57,931,834 ops/sec (-26.2%)
+Range scan: 31,777,305 ops/sec (3.1%)
 
-Removal: 34,072,982 ops/sec (-31.28%)
+Removal: 36,972,404 ops/sec (-14.16%)
 
 
 == Random test ==
 
 * Red Black Tree (in Linux)
 
-Insertion: 1,061,217 ops/sec
+Insertion: 1,145,695 ops/sec
 
-Retrieval: 12,134,484 ops/sec
+Retrieval: 11,364,515 ops/sec
 
-Range scan: 41,625,908 ops/sec
+Range scan: 32,776,246 ops/sec
 
-Removal: 44,442,469 ops/sec
+Removal: 39,278,686 ops/sec
 
 * AVL-Tree 
 
-Insertion: 1,279,334 ops/sec (20.55%)
+Insertion: 1,118,304 ops/sec (-2.39%)
 
-Retrieval: 12,068,195 ops/sec (-0.55%)
+Retrieval: 11,526,607 ops/sec (1.43%)
 
-Range scan: 44,533,511 ops/sec (6.99%)
+Range scan: 35,078,365 ops/sec (7.02%)
 
-Removal: 33,655,000 ops/sec (-24.27%)
+Removal: 30,172,648 ops/sec (-23.18%)
