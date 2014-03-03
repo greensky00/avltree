@@ -38,11 +38,6 @@ struct kv_node{
     int key;
     int value;
     struct avl_node avl;
-};
-
-struct kv_node_rb{
-    int key;
-    int value;
     struct rb_node rb;
 };
 
@@ -71,23 +66,22 @@ int cmp_func(struct avl_node *a, struct avl_node *b, void *aux)
 
 int cmp_func_rb(struct rb_node *a, struct rb_node *b, void *aux)
 {
-    struct kv_node_rb *aa, *bb;
-    aa = _get_entry(a, struct kv_node_rb, rb);
-    bb = _get_entry(b, struct kv_node_rb, rb);
+    struct kv_node *aa, *bb;
+    aa = _get_entry(a, struct kv_node, rb);
+    bb = _get_entry(b, struct kv_node, rb);
     if (aa->key < bb->key) return -1;
     else if (aa->key > bb->key) return 1;
     else return 0;
 }
 
-int main()
+void do_test(size_t n, struct kv_node **kv)
 {
-    int i, n=10000000;
+    size_t i;
     struct avl_tree avl_tree;
     struct rb_root rb_tree;
     struct avl_node *avl_node;
     struct rb_node *rb_node;
-    struct kv_node *kv_avl, query_avl;
-    struct kv_node_rb *kv_rb, query_rb;
+    struct kv_node query, *node;
     struct timeval begin, end, gap;
 
     rbwrap_init(&rb_tree, NULL);
@@ -96,10 +90,7 @@ int main()
     // rb-tree insertion
     gettimeofday(&begin, NULL);
     for (i=0;i<n;++i){
-        kv_rb = (struct kv_node_rb*)malloc(sizeof(struct kv_node_rb));
-        kv_rb->key = i;
-        kv_rb->value = i;
-        rbwrap_insert(&rb_tree, &kv_rb->rb, cmp_func_rb);
+        rbwrap_insert(&rb_tree, &kv[i]->rb, cmp_func_rb);
     }
     gettimeofday(&end, NULL);
     gap = _utime_gap(begin, end);
@@ -109,8 +100,8 @@ int main()
     // rb-tree retrieval
     gettimeofday(&begin, NULL);
     for (i=0;i<n;++i){
-        query_rb.key = i;
-        rb_node = rbwrap_search(&rb_tree, &query_rb.rb, cmp_func_rb);
+        query.key = i;
+        rb_node = rbwrap_search(&rb_tree, &query.rb, cmp_func_rb);
     }
     gettimeofday(&end, NULL);
     gap = _utime_gap(begin, end);
@@ -128,14 +119,23 @@ int main()
     printf("RB-Tree range scan: %d.%d sec elapsed\n",
         (int)gap.tv_sec, (int)gap.tv_usec);
 
+    // rb-tree remove
+    gettimeofday(&begin, NULL);
+    rb_node = rb_first(&rb_tree);
+    while(rb_node) {
+        node = _get_entry(rb_node, struct kv_node, rb);
+        rb_node = rb_next(rb_node);
+        rb_erase(&node->rb, &rb_tree);
+    }
+    gettimeofday(&end, NULL);
+    gap = _utime_gap(begin, end);
+    printf("RB-Tree remove: %d.%d sec elapsed\n",
+        (int)gap.tv_sec, (int)gap.tv_usec);
 
     // avl-tree insertion
     gettimeofday(&begin, NULL);
     for (i=0;i<n;++i){
-        kv_avl = (struct kv_node*)malloc(sizeof(struct kv_node));
-        kv_avl->key = i;
-        kv_avl->value = i;
-        avl_insert(&avl_tree, &kv_avl->avl, cmp_func);
+        avl_insert(&avl_tree, &kv[i]->avl, cmp_func);
     }
     gettimeofday(&end, NULL);
     gap = _utime_gap(begin, end);
@@ -145,8 +145,8 @@ int main()
     // avl-tree retrieval
     gettimeofday(&begin, NULL);
     for (i=0;i<n;++i){
-        query_avl.key = i;
-        avl_node = avl_search(&avl_tree, &query_avl.avl, cmp_func);
+        query.key = i;
+        avl_node = avl_search(&avl_tree, &query.avl, cmp_func);
     }
     gettimeofday(&end, NULL);
     gap = _utime_gap(begin, end);
@@ -163,6 +163,52 @@ int main()
     gap = _utime_gap(begin, end);
     printf("AVL-Tree range scan: %d.%d sec elapsed\n",
         (int)gap.tv_sec, (int)gap.tv_usec);
+
+    // avl-tree remove
+    gettimeofday(&begin, NULL);
+    avl_node = avl_first(&avl_tree);
+    while(avl_node) {
+        node = _get_entry(avl_node, struct kv_node, avl);
+        avl_node = avl_next(avl_node);
+        avl_remove(&avl_tree, &node->avl);
+    }
+    gettimeofday(&end, NULL);
+    gap = _utime_gap(begin, end);
+    printf("AVL-Tree remove: %d.%d sec elapsed\n",
+        (int)gap.tv_sec, (int)gap.tv_usec);
+}
+
+int main()
+{
+    size_t i, r;
+    size_t n=10000000;
+    struct kv_node **kv, *temp;
+
+    printf("Initialize.. ");
+    kv = (struct kv_node **)malloc(sizeof(struct kv_node *) * n);
+    for (i=0;i<n;++i){
+        kv[i] = (struct kv_node*)malloc(sizeof(struct kv_node));
+        kv[i]->key = i;
+        kv[i]->value = i;
+    }
+    printf("done\n");
+
+    printf("< Sequential test >\n");
+    do_test(n, kv);
+
+    // shuffling
+    printf("Shuffling.. ");
+    for (i=0;i<n;++i){
+        // swap kv[i] <-> kv[r]
+        r = rand() % n;
+        temp = kv[r];
+        kv[r] = kv[i];
+        kv[i] = temp;
+    }
+    printf("done\n");
+
+    printf("< Random test >\n");
+    do_test(n, kv);
 
     return 0;
 }

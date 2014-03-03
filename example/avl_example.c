@@ -106,7 +106,8 @@ int main()
     while(cur) {
         node = _get_entry(cur, struct kv_node, avl);
         printf("remove key %d, value %d\n", node->key, node->value);
-        cur = avl_remove(&tree, &node->avl);
+        cur = avl_next(cur);
+        avl_remove(&tree, &node->avl);
         free(node);
     }
 
