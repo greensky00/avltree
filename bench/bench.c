@@ -119,7 +119,7 @@ void do_test(size_t n, struct kv_node **kv)
     printf("RB-Tree range scan: %d.%d sec elapsed\n",
         (int)gap.tv_sec, (int)gap.tv_usec);
 
-    // rb-tree remove
+    // rb-tree removal
     gettimeofday(&begin, NULL);
     rb_node = rb_first(&rb_tree);
     while(rb_node) {
@@ -129,7 +129,7 @@ void do_test(size_t n, struct kv_node **kv)
     }
     gettimeofday(&end, NULL);
     gap = _utime_gap(begin, end);
-    printf("RB-Tree remove: %d.%d sec elapsed\n",
+    printf("RB-Tree removal: %d.%d sec elapsed\n",
         (int)gap.tv_sec, (int)gap.tv_usec);
 
     // avl-tree insertion
@@ -164,7 +164,7 @@ void do_test(size_t n, struct kv_node **kv)
     printf("AVL-Tree range scan: %d.%d sec elapsed\n",
         (int)gap.tv_sec, (int)gap.tv_usec);
 
-    // avl-tree remove
+    // avl-tree removal
     gettimeofday(&begin, NULL);
     avl_node = avl_first(&avl_tree);
     while(avl_node) {
@@ -174,7 +174,7 @@ void do_test(size_t n, struct kv_node **kv)
     }
     gettimeofday(&end, NULL);
     gap = _utime_gap(begin, end);
-    printf("AVL-Tree remove: %d.%d sec elapsed\n",
+    printf("AVL-Tree removal: %d.%d sec elapsed\n",
         (int)gap.tv_sec, (int)gap.tv_usec);
 }
 
