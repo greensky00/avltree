@@ -16,19 +16,51 @@ refer to example/avl_example.c
 
 simple benchmark
 ================
-execute bench_avl_rb
+./bench_avl_rb
 
-Benchmark results compared to Red Black Trees implemented in Linux kernel archive, using 10M key-value pairs on a machine equipped with i7-3770 CPU (3.4GHz, 4-core 8-thread) are as follows:
+We estimated the performance of our implementation compared to Red Black Tree implemented in Linux kernel source code archive. Total 10M key-value pairs are used on a machine equipped with i7-3770 CPU (3.4GHz, 4-core 8-thread). The results are averaged over 5 runs, discarding the maximum and the minimum values.
 
-RB-Tree insertion: 2.651830 sec elapsed
+<Sequential test>
 
-RB-Tree retrieval: 1.493996 sec elapsed
+* Red Black Tree (in Linux)
 
-RB-Tree range scan: 0.175005 sec elapsed
+Insertion: 3,468,228 ops/sec
 
-AVL-Tree insertion: 2.655522 sec elapsed (0.14% slower)
+Retrieval: 5,607,483 ops/sec
 
-AVL-Tree retrieval: 1.392298 sec elapsed (6.81% faster)
+Range scan: 78,506,698 ops/sec
 
-AVL-Tree range scan: 0.168931 sec elapsed (3.47% faster)
+Remove: 49,582,187 ops/sec
 
+* AVL-Tree 
+
+Insertion: 6,802,096 ops/sec (96.15%)
+
+Retrieval: 6,050,063 ops/sec (7.89%)
+
+Range scan: 57,931,834 ops/sec (-26.2%)
+
+Remove: 49,582,187 ops/sec (-31.28%)
+
+
+<Random test>
+
+* Red Black Tree (in Linux)
+
+Insertion: 1,061,217 ops/sec
+
+Retrieval: 12,134,484 ops/sec
+
+Range scan: 41,625,908 ops/sec
+
+Remove: 44,442,469 ops/sec
+
+* AVL-Tree 
+
+Insertion: 1,279,334 ops/sec (20.55%)
+
+Retrieval: 12,068,195 ops/sec (-0.55%)
+
+Range scan: 44,533,511 ops/sec (6.99%)
+
+Remove: 33,655,000 ops/sec (-24.27%)\
