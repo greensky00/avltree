@@ -38,6 +38,9 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 #include "avltree.h"
 
+#define max(a,b)    (((a) > (b)) ? (a) : (b))
+#define min(a,b)    (((a) < (b)) ? (a) : (b))
+
 INLINE int _abs(int n) {
     int mask = n>> ((sizeof(int)*8) -1);
     return (mask+n)^mask;
@@ -64,8 +67,8 @@ INLINE void avl_set_parent(struct avl_node *node, struct avl_node *parent)
 #include "avltree_debug.h"
 #else
 #define __AVL_DEBUG_BF_CHECK(bf)
-#define __AVL_DEBUG_LL(p, c)
-#define __AVL_DEBUG_RR(p, c)
+#define __AVL_DEBUG_LL(p, c, pb, cb)
+#define __AVL_DEBUG_RR(p, c, pb, cb)
 #define __AVL_DEBUG_BAL_BEGIN(node, bf, height_diff)
 #define __AVL_DEBUG_BAL_END(node)
 #define __AVL_DEBUG_INSERT(node)
@@ -85,17 +88,33 @@ INLINE void avl_set_bf(struct avl_node *node, int bf)
 #endif
 }
 
-INLINE struct avl_node* _rotate_LL(struct avl_node *parent)
+INLINE struct avl_node* _rotate_LL(struct avl_node *parent,
+                                   int parent_bf,
+                                   int *child_bf)
 {
+    int p_right, c_left, c_right;
     struct avl_node *child = parent->left;
 
-    __AVL_DEBUG_LL(parent, child);
+    __AVL_DEBUG_LL(parent, child, parent_bf, *child_bf);
 
-    avl_set_bf(parent, avl_bf(parent)+1);
-    avl_set_bf(child, avl_bf(child)+1);
+    c_left = (child->left)?(1):(0);
+    c_right = (child->right)?(1):(0);
+    if (*child_bf < 0) {
+        // child->left > child->right
+        c_left = c_right - (*child_bf);
+        p_right = c_left + 1 + parent_bf;
+        *child_bf = p_right - c_left + 1;
+    } else {
+        // child->left <= child->right
+        c_right = c_left + (*child_bf);
+        p_right = c_right + 1 + parent_bf;
+        *child_bf = max(c_right, p_right) - c_left + 1;
+    }
+    avl_set_bf(parent, p_right - c_right);
 
     parent->left = child->right;
-    if (child->right != NULL) avl_set_parent(child->right, parent);
+    if (child->right)
+        avl_set_parent(child->right, parent);
     child->right = parent;
     avl_set_parent(child, avl_parent(parent));
     avl_set_parent(parent, child);
@@ -103,17 +122,33 @@ INLINE struct avl_node* _rotate_LL(struct avl_node *parent)
     return child;
 }
 
-INLINE struct avl_node* _rotate_RR(struct avl_node *parent)
+INLINE struct avl_node* _rotate_RR(struct avl_node *parent,
+                                   int parent_bf,
+                                   int *child_bf)
 {
+    int p_left, c_left, c_right;
     struct avl_node *child = parent->right;
 
-    __AVL_DEBUG_RR(parent, child);
+    __AVL_DEBUG_RR(parent, child, parent_bf, *child_bf);
 
-    avl_set_bf(parent, avl_bf(parent)-1);
-    avl_set_bf(child, avl_bf(child)-1);
+    c_left = (child->left)?(1):(0);
+    c_right = (child->right)?(1):(0);
+    if (*child_bf < 0) {
+        // child->left > child->right
+        c_left = c_right - (*child_bf);
+        p_left = c_left + 1 - parent_bf;
+        *child_bf = p_left - c_left + 1;
+    } else {
+        // child->left <= child->right
+        c_right = c_left + (*child_bf);
+        p_left = c_right + 1 - parent_bf;
+        *child_bf = c_right - (max(c_left, p_left) + 1);
+    }
+    avl_set_bf(parent, c_left - p_left);
 
     parent->right = child->left;
-    if (child->left != NULL) avl_set_parent(child->left, parent);
+    if (child->left)
+        avl_set_parent(child->left, parent);
     child->left = parent;
     avl_set_parent(child, avl_parent(parent));
     avl_set_parent(parent, child);
@@ -121,43 +156,68 @@ INLINE struct avl_node* _rotate_RR(struct avl_node *parent)
     return child;
 }
 
-INLINE struct avl_node* _rotate_LR(struct avl_node *parent)
+INLINE struct avl_node* _rotate_LR(struct avl_node *parent, int parent_bf)
 {
+    int child_bf;
     struct avl_node *child = parent->left;
-    if (child->right != NULL) parent->left = _rotate_RR(child);
-    return _rotate_LL(parent);
+    struct avl_node *ret;
+
+    if (child->right) {
+        child_bf = avl_bf(child->right);
+        parent->left = _rotate_RR(child, avl_bf(child), &child_bf);
+    } else {
+        child_bf = avl_bf(child);
+    }
+    ret = _rotate_LL(parent, parent_bf, &child_bf);
+
+    avl_set_bf(ret, child_bf);
+    return ret;
 }
 
-INLINE struct avl_node* _rotate_RL(struct avl_node *parent)
+INLINE struct avl_node* _rotate_RL(struct avl_node *parent, int parent_bf)
 {
+    int child_bf;
     struct avl_node *child = parent->right;
-    if (child->left != NULL) parent->right = _rotate_LL(child);
-    return _rotate_RR(parent);
+    struct avl_node *ret;
+
+    if (child->left) {
+        child_bf = avl_bf(child->left);
+        parent->right = _rotate_LL(child, avl_bf(child), &child_bf);
+    } else {
+        child_bf = avl_bf(child);
+    }
+    ret = _rotate_RR(parent, parent_bf, &child_bf);
+
+    avl_set_bf(ret, child_bf);
+    return ret;
 }
 
 #define _get_balance(node) ((node)?(avl_bf(node)):(0))
 
 struct avl_node* _balance_tree(struct avl_node *node, int bf)
 {
+    int child_bf;
     int height_diff= _get_balance(node) + bf;
 
     __AVL_DEBUG_BAL_BEGIN(node, bf, height_diff);
 
-    if(height_diff < -1 && node->left != NULL) {
+    if(height_diff < -1 && node->left) {
         // balance left sub tree
         if(_get_balance(node->left) < 0) {
-            node = _rotate_LL(node);
+            child_bf = avl_bf(node->left);
+            node = _rotate_LL(node, height_diff, &child_bf);
+            avl_set_bf(node, child_bf);
         } else {
-            node = _rotate_LR(node);
-            avl_set_bf(node, avl_bf(node) + bf);
+            node = _rotate_LR(node, height_diff);
         }
-    } else if(height_diff > 1 && node->right != NULL) {
+    } else if(height_diff > 1 && node->right) {
         // balance right sub tree
         if(_get_balance(node->right) > 0) {
-            node = _rotate_RR(node);
+            child_bf = avl_bf(node->right);
+            node = _rotate_RR(node, height_diff, &child_bf);
+            avl_set_bf(node, child_bf);
         } else {
-            node = _rotate_RL(node);
-            avl_set_bf(node, avl_bf(node) + bf);
+            node = _rotate_RL(node, height_diff);
         }
     } else {
         avl_set_bf(node, avl_bf(node) + bf);

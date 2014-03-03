@@ -32,14 +32,14 @@ OTHER DEALINGS IN THE SOFTWARE.
 #ifdef __AVL_DEBUG
 
 #define __AVL_DEBUG_BF_CHECK(bf) assert((bf) >= -1 && (bf) <= 1)
-#define __AVL_DEBUG_LL(p, c) \
+#define __AVL_DEBUG_LL(p, c, pb, cb) \
     printf("LL %08lx parent (%d) %08lx child (%d)\n", \
-        (unsigned long)(p), avl_bf(p), \
-        (unsigned long)(c), avl_bf(c));
-#define __AVL_DEBUG_RR(p, c) \
+        (unsigned long)(p), (pb), \
+        (unsigned long)(c), (cb));
+#define __AVL_DEBUG_RR(p, c, pb, cb) \
     printf("RR %08lx parent (%d) %08lx child (%d)\n", \
-        (unsigned long)(p), avl_bf(p), \
-        (unsigned long)(c), avl_bf(c));
+        (unsigned long)(p), (pb), \
+        (unsigned long)(c), (cb));
 #define __AVL_DEBUG_BAL_BEGIN(node, bf, height_diff) \
     printf("balance node %08lx (%d + %d = %d)\n", \
         (unsigned long)(node), avl_bf(node), bf, height_diff);
