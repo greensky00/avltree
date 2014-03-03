@@ -30,7 +30,7 @@ Retrieval: 5,607,483 ops/sec
 
 Range scan: 78,506,698 ops/sec
 
-Remove: 49,582,187 ops/sec
+Removal: 49,582,187 ops/sec
 
 * AVL-Tree 
 
@@ -40,7 +40,7 @@ Retrieval: 6,050,063 ops/sec (7.89%)
 
 Range scan: 57,931,834 ops/sec (-26.2%)
 
-Remove: 34,072,982 ops/sec (-31.28%)
+Removal: 34,072,982 ops/sec (-31.28%)
 
 
 == Random test ==
@@ -53,7 +53,7 @@ Retrieval: 12,134,484 ops/sec
 
 Range scan: 41,625,908 ops/sec
 
-Remove: 44,442,469 ops/sec
+Removal: 44,442,469 ops/sec
 
 * AVL-Tree 
 
@@ -63,4 +63,4 @@ Retrieval: 12,068,195 ops/sec (-0.55%)
 
 Range scan: 44,533,511 ops/sec (6.99%)
 
-Remove: 33,655,000 ops/sec (-24.27%)
+Removal: 33,655,000 ops/sec (-24.27%)
