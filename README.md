@@ -20,7 +20,7 @@ simple benchmark
 
 We estimated the performance of our implementation compared to Red Black Tree implemented in Linux kernel source code archive. Total 10M key-value pairs are used on a machine equipped with i7-3770 CPU (3.4GHz, 4-core 8-thread). The results are averaged over 5 runs, discarding the maximum and the minimum values.
 
-<Sequential test>
+== Sequential test ==
 
 * Red Black Tree (in Linux)
 
@@ -40,10 +40,10 @@ Retrieval: 6,050,063 ops/sec (7.89%)
 
 Range scan: 57,931,834 ops/sec (-26.2%)
 
-Remove: 49,582,187 ops/sec (-31.28%)
+Remove: 34,072,982 ops/sec (-31.28%)
 
 
-<Random test>
+== Random test ==
 
 * Red Black Tree (in Linux)
 
@@ -63,4 +63,4 @@ Retrieval: 12,068,195 ops/sec (-0.55%)
 
 Range scan: 44,533,511 ops/sec (6.99%)
 
-Remove: 33,655,000 ops/sec (-24.27%)\
+Remove: 33,655,000 ops/sec (-24.27%)
