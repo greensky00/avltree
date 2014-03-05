@@ -2,7 +2,7 @@
 Copyright (C) 2014 Jung-Sang Ahn <jungsang.ahn@gmail.com>
 All rights reserved.
 
-Last modification: Mar 3, 2014
+Last modification: Mar 5, 2014
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -53,6 +53,15 @@ struct avl_tree{
         ((STRUCT *) ((uint8_t *) (ELEM) - offsetof (STRUCT, MEMBER)))
 #endif
 
+#define avl_parent(node) \
+        ((struct avl_node *)((unsigned long)(node)->parent & ~0x3))
+
+#ifdef _AVL_SEPARATE_PARENT_BF
+    #define avl_bf(node) ((node)->bf)
+#else
+    #define avl_bf(node) (((int)((unsigned long)(node)->parent & 0x3)) - 1)
+#endif
+
 // *a < *b : return neg
 // *a == *b : return 0
 // *a > *b : return pos
@@ -74,10 +83,5 @@ struct avl_node* avl_first(struct avl_tree *tree);
 struct avl_node* avl_last(struct avl_tree *tree);
 struct avl_node* avl_next(struct avl_node *node);
 struct avl_node* avl_prev(struct avl_node *node);
-
-
-#ifdef __AVL_DEBUG
-void _avl_display(struct avl_node *p, int depth);
-#endif
 
 #endif

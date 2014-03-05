@@ -2,7 +2,7 @@
 Copyright (C) 2014 Jung-Sang Ahn <jungsang.ahn@gmail.com>
 All rights reserved.
 
-Last modification: Mar 3, 2014
+Last modification: Mar 5, 2014
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -29,6 +29,10 @@ OTHER DEALINGS IN THE SOFTWARE.
 #ifndef _JSAHN_AVL_DEBUG_H
 #define _JSAHN_AVL_DEBUG_H
 
+#include <stdio.h>
+#include <assert.h>
+#include "avltree.h"
+
 #ifdef __AVL_DEBUG
 
 #define __AVL_DEBUG_BF_CHECK(bf) assert((bf) >= -1 && (bf) <= 1)
@@ -52,42 +56,9 @@ OTHER DEALINGS IN THE SOFTWARE.
     printf("remove %08lx\n", (unsigned long)(node));
 #define __AVL_DEBUG_DISPLAY(tree) _avl_display((tree)->root, 0)
 
-char space[256];
-char *_space(int n)
-{
-    int i;
-    for (i=0;i<n;++i) space[i]=' ';
-    space[i] = 0;
-    return space;
-}
+#endif  // __AVL_DEBUG
 
-void _avl_display(struct avl_node *p, int depth)
-{
-    if(p)
-    {
-        if (p->left) assert(avl_parent(p->left) == p);
-        _avl_display(p->left, depth+1);
-
-#ifdef _AVL_NEXT_POINTER
-        printf("%s[%d %08lx %08lx %08lx %08lx %08lx %08lx %2d]\n",
-            _space(depth), depth, (unsigned long)p,
-            (unsigned long)avl_parent(p),
-            (unsigned long)p->left, (unsigned long)p->right,
-            (unsigned long)p->prev, (unsigned long)p->next,
-            avl_bf(p));
-#else
-        printf("%s[%d %08lx %08lx %08lx %08lx %2d]\n",
-            _space(depth), depth, (unsigned long)p,
-            (unsigned long)avl_parent(p),
-            (unsigned long)p->left, (unsigned long)p->right,
-            avl_bf(p));
-#endif
-
-        if (p->right) assert(avl_parent(p->right) == p);
-        _avl_display(p->right, depth+1);
-    }
-}
-
-#endif
+void _avl_display(struct avl_node *p, int depth);
+size_t _avl_integrity_check(struct avl_node *p);
 
 #endif

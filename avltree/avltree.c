@@ -2,7 +2,7 @@
 Copyright (C) 2014 Jung-Sang Ahn <jungsang.ahn@gmail.com>
 All rights reserved.
 
-Last modification: Mar 3, 2014
+Last modification: Mar 5, 2014
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -50,15 +50,6 @@ INLINE void avl_set_parent(struct avl_node *node, struct avl_node *parent)
     node->parent = (struct avl_node *)(
         (unsigned long)parent | ((unsigned long)node->parent & 0x3));
 }
-
-#define avl_parent(node) \
-        ((struct avl_node *)((unsigned long)(node)->parent & ~0x3))
-
-#ifdef _AVL_SEPARATE_PARENT_BF
-    #define avl_bf(node) ((node)->bf)
-#else
-    #define avl_bf(node) (((int)((unsigned long)(node)->parent & 0x3)) - 1)
-#endif
 
 #ifdef __AVL_DEBUG
 #include <stdio.h>
