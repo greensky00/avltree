@@ -7,7 +7,7 @@ PROGRAMS = \
 	avltree_example \
 	bench_avl_rb \
 	
-LDFLAGS = -pthread
+LDFLAGS = -lpthread
 CFLAGS = \
 	-g -D_GNU_SOURCE \
 	-I. -I./avltree -I./rbtree \

@@ -2,7 +2,7 @@
 Copyright (C) 2014 Jung-Sang Ahn <jungsang.ahn@gmail.com>
 All rights reserved.
 
-Last modification: Mar 5, 2014
+Last modification: Nov 30, 2014
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -48,7 +48,7 @@ INLINE int _abs(int n) {
 INLINE void avl_set_parent(struct avl_node *node, struct avl_node *parent)
 {
     node->parent = (struct avl_node *)(
-        (unsigned long)parent | ((unsigned long)node->parent & 0x3));
+        (uint64_t)parent | ((uint64_t)node->parent & 0x3));
 }
 
 #ifdef __AVL_DEBUG
@@ -74,7 +74,7 @@ INLINE void avl_set_bf(struct avl_node *node, int bf)
     node->bf = bf;
 #else
     node->parent = (struct avl_node *)(
-        (unsigned long)avl_parent(node) | (unsigned long)(bf+1));
+        (uint64_t)avl_parent(node) | (uint64_t)(bf+1));
 #endif
 }
 
@@ -202,31 +202,33 @@ struct avl_node* _balance_tree(struct avl_node *node, int bf)
     int child_bf;
     int height_diff= _get_balance(node) + bf;
 
-    __AVL_DEBUG_BAL_BEGIN(node, bf, height_diff);
+    if (node) {
+        __AVL_DEBUG_BAL_BEGIN(node, bf, height_diff);
 
-    if(height_diff < -1 && node->left) {
-        // balance left sub tree
-        if(_get_balance(node->left) <= 0) {
-            child_bf = avl_bf(node->left);
-            node = _rotate_LL(node, height_diff, &child_bf, NULL);
-            avl_set_bf(node, child_bf);
+        if(height_diff < -1 && node->left) {
+            // balance left sub tree
+            if(_get_balance(node->left) <= 0) {
+                child_bf = avl_bf(node->left);
+                node = _rotate_LL(node, height_diff, &child_bf, NULL);
+                avl_set_bf(node, child_bf);
+            } else {
+                node = _rotate_LR(node, height_diff);
+            }
+        } else if(height_diff > 1 && node->right) {
+            // balance right sub tree
+            if(_get_balance(node->right) >= 0) {
+                child_bf = avl_bf(node->right);
+                node = _rotate_RR(node, height_diff, &child_bf, NULL);
+                avl_set_bf(node, child_bf);
+            } else {
+                node = _rotate_RL(node, height_diff);
+            }
         } else {
-            node = _rotate_LR(node, height_diff);
+            avl_set_bf(node, avl_bf(node) + bf);
         }
-    } else if(height_diff > 1 && node->right) {
-        // balance right sub tree
-        if(_get_balance(node->right) >= 0) {
-            child_bf = avl_bf(node->right);
-            node = _rotate_RR(node, height_diff, &child_bf, NULL);
-            avl_set_bf(node, child_bf);
-        } else {
-            node = _rotate_RL(node, height_diff);
-        }
-    } else {
-        avl_set_bf(node, avl_bf(node) + bf);
+
+        __AVL_DEBUG_BAL_END(node);
     }
-
-    __AVL_DEBUG_BAL_END(node);
 
     return node;
 }
@@ -356,8 +358,8 @@ struct avl_node* avl_search(struct avl_tree *tree,
 }
 
 struct avl_node* avl_search_greater(struct avl_tree *tree,
-                            struct avl_node *node,
-                            avl_cmp_func *func)
+                                    struct avl_node *node,
+                                    avl_cmp_func *func)
 // if an exact match does not exist,
 // return smallest node greater than NODE
 {
@@ -385,6 +387,39 @@ struct avl_node* avl_search_greater(struct avl_tree *tree,
         return pp;
     }else{
         return avl_next(pp);
+    }
+}
+
+struct avl_node* avl_search_smaller(struct avl_tree *tree,
+                                    struct avl_node *node,
+                                    avl_cmp_func *func)
+// if an exact match does not exist,
+// return greatest node smaller than NODE
+{
+    struct avl_node *p = tree->root;
+    struct avl_node *pp = NULL;
+    int cmp;
+
+    while(p)
+    {
+        cmp = func(p, node, tree->aux);
+        pp = p;
+
+        if (cmp > 0) {
+            p = p->left;
+        }else if (cmp < 0){
+            p = p->right;
+        }else {
+            // search success
+            return p;
+        }
+    }
+
+    cmp = func(pp, node, tree->aux);
+    if (cmp < 0) {
+        return pp;
+    }else{
+        return avl_prev(pp);
     }
 }
 
@@ -459,7 +494,6 @@ struct avl_node* avl_insert(struct avl_tree *tree,
 
         if (p) {
             // if parent exists
-            cur = node;
             bf_old = avl_bf(node);
 
             if (p->right == node) {
@@ -629,4 +663,3 @@ void avl_remove(struct avl_tree *tree,
 
     __AVL_DEBUG_DISPLAY(tree);
 }
-

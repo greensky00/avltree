@@ -2,7 +2,7 @@
 Copyright (C) 2014 Jung-Sang Ahn <jungsang.ahn@gmail.com>
 All rights reserved.
 
-Last modification: Mar 5, 2014
+Last modification: Nov 30, 2014
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -32,6 +32,10 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "stddef.h"
 #include "stdint.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct avl_node {
     struct avl_node *parent, *left, *right;
 
@@ -54,12 +58,12 @@ struct avl_tree{
 #endif
 
 #define avl_parent(node) \
-        ((struct avl_node *)((unsigned long)(node)->parent & ~0x3))
+        ((struct avl_node *)((uint64_t)(node)->parent & ~0x3))
 
 #ifdef _AVL_SEPARATE_PARENT_BF
     #define avl_bf(node) ((node)->bf)
 #else
-    #define avl_bf(node) (((int)((unsigned long)(node)->parent & 0x3)) - 1)
+    #define avl_bf(node) (((int)((uint64_t)(node)->parent & 0x3)) - 1)
 #endif
 
 // *a < *b : return neg
@@ -75,13 +79,20 @@ struct avl_node* avl_search(struct avl_tree *tree,
                             struct avl_node *node,
                             avl_cmp_func *func);
 struct avl_node* avl_search_greater(struct avl_tree *tree,
-                            struct avl_node *node,
-                            avl_cmp_func *func);
+                                    struct avl_node *node,
+                                    avl_cmp_func *func);
+struct avl_node* avl_search_smaller(struct avl_tree *tree,
+                                    struct avl_node *node,
+                                    avl_cmp_func *func);
 void avl_remove(struct avl_tree *tree,
                 struct avl_node *node);
 struct avl_node* avl_first(struct avl_tree *tree);
 struct avl_node* avl_last(struct avl_tree *tree);
 struct avl_node* avl_next(struct avl_node *node);
 struct avl_node* avl_prev(struct avl_node *node);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

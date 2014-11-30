@@ -82,6 +82,12 @@ int main()
     node = _get_entry(cur, struct kv_node, avl);
     printf("key %d, value %d\n", node->key, node->value);
 
+    // retrieve greatest key smaller than 35
+    printf("retrieve greatest key smaller than 35\n");
+    query.key = 35;
+    cur = avl_search_smaller(&tree, &query.avl, cmp_func);
+    node = _get_entry(cur, struct kv_node, avl);
+    printf("key %d, value %d\n", node->key, node->value);
 
     // scan in an ascending order
     printf("scan in an ascending order\n");
