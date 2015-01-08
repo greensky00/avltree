@@ -2,7 +2,7 @@
 Copyright (C) 2014 Jung-Sang Ahn <jungsang.ahn@gmail.com>
 All rights reserved.
 
-Last modification: Nov 30, 2014
+Last modification: Jan 8, 2015
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -382,6 +382,10 @@ struct avl_node* avl_search_greater(struct avl_tree *tree,
         }
     }
 
+    if (!pp) {
+        return pp;
+    }
+
     cmp = func(pp, node, tree->aux);
     if (cmp > 0) {
         return pp;
@@ -413,6 +417,10 @@ struct avl_node* avl_search_smaller(struct avl_tree *tree,
             // search success
             return p;
         }
+    }
+
+    if (!pp) {
+        return pp;
     }
 
     cmp = func(pp, node, tree->aux);
@@ -663,3 +671,4 @@ void avl_remove(struct avl_tree *tree,
 
     __AVL_DEBUG_DISPLAY(tree);
 }
+
