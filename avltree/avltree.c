@@ -1,8 +1,8 @@
 /*
-Copyright (C) 2014 Jung-Sang Ahn <jungsang.ahn@gmail.com>
+Copyright (C) 2014-present Jung-Sang Ahn <jungsang.ahn@gmail.com>
 All rights reserved.
 
-Last modification: Jan 8, 2015
+Last modification: Jan 20, 2017
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -197,7 +197,7 @@ INLINE struct avl_node* _rotate_RL(struct avl_node *parent, int parent_bf)
 
 #define _get_balance(node) ((node)?(avl_bf(node)):(0))
 
-struct avl_node* _balance_tree(struct avl_node *node, int bf)
+static struct avl_node* _balance_tree(struct avl_node *node, int bf)
 {
     int child_bf;
     int height_diff= _get_balance(node) + bf;
@@ -437,12 +437,18 @@ void avl_init(struct avl_tree *tree, void *aux)
     tree->aux = aux;
 }
 
+void avl_set_aux(struct avl_tree *tree, void *aux)
+{
+    tree->aux = aux;
+}
+
 struct avl_node* avl_insert(struct avl_tree *tree,
                             struct avl_node *node,
                             avl_cmp_func *func)
 {
     __AVL_DEBUG_INSERT(node);
 
+    struct avl_node *node_original = node;
     struct avl_node *p=NULL,*cur;
     int cmp, bf, bf_old;
 
@@ -539,7 +545,7 @@ struct avl_node* avl_insert(struct avl_tree *tree,
 
     __AVL_DEBUG_DISPLAY(tree);
 
-    return node;
+    return node_original;
 }
 
 void avl_remove(struct avl_tree *tree,
