@@ -1,8 +1,8 @@
 /*
-Copyright (C) 2014 Jung-Sang Ahn <jungsang.ahn@gmail.com>
+Copyright (C) 2014-present Jung-Sang Ahn <jungsang.ahn@gmail.com>
 All rights reserved.
 
-Last modification: Mar 3, 2014
+Last modification: Jan 22, 2017
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -35,14 +35,16 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "avltree.h"
 #include "rbwrap.h"
 
+#include <set>
+
 struct kv_node{
-    uint32_t key;
     struct avl_node avl;
+    uint32_t key;
 };
 
 struct kv_node_rb{
-    uint32_t key;
     struct rb_node rb;
+    uint32_t key;
 };
 
 static struct timeval _utime_gap(struct timeval a, struct timeval b)
@@ -51,7 +53,7 @@ static struct timeval _utime_gap(struct timeval a, struct timeval b)
     if (b.tv_usec >= a.tv_usec) {
         ret.tv_usec = b.tv_usec - a.tv_usec;
         ret.tv_sec = b.tv_sec - a.tv_sec;
-    }else{
+    } else {
         ret.tv_usec = 1000000 + b.tv_usec - a.tv_usec;
         ret.tv_sec = b.tv_sec - a.tv_sec - 1;
     }
@@ -78,6 +80,31 @@ int cmp_func_rb(struct rb_node *a, struct rb_node *b, void *aux)
     else return 0;
 }
 
+struct test_result {
+    struct timeval gap;
+    int index_type;  // 0: rb-tree, 1: avl-tree, 2: STL set
+    int op_type;     // 0: insertion, 1: retrieval, 2: range scan, 3: removal
+    size_t n_keys;
+};
+
+void gather_result(struct test_result result)
+{
+    const char *index_name[3] = {"RB-tree",
+                                 "AVL-tree",
+                                 "STL set"};
+    const char *op_type_name[4] = {"insertion",
+                                   "retrieval",
+                                   "range scan",
+                                   "removal"};
+    double gap_double = result.gap.tv_sec + result.gap.tv_usec / 1000000.0;
+
+    printf("%s %s: %.3f sec elapsed (%.2f ops/sec)\n",
+           index_name[result.index_type],
+           op_type_name[result.op_type],
+           gap_double,
+           result.n_keys / gap_double);
+}
+
 void do_test(size_t n, struct kv_node **kv, struct kv_node_rb **kv_rb)
 {
     size_t i;
@@ -87,10 +114,16 @@ void do_test(size_t n, struct kv_node **kv, struct kv_node_rb **kv_rb)
     struct rb_node *rb_node;
     struct kv_node query, *node;
     struct kv_node_rb query_rb, *node_rb;
-    struct timeval begin, end, gap;
+    struct timeval begin, end;
+    struct test_result result;
 
     rbwrap_init(&rb_tree, NULL);
     avl_init(&avl_tree, NULL);
+
+    result.n_keys = n;
+
+    // === rb-tree ===
+    result.index_type = 0;
 
     // rb-tree insertion
     gettimeofday(&begin, NULL);
@@ -98,9 +131,9 @@ void do_test(size_t n, struct kv_node **kv, struct kv_node_rb **kv_rb)
         rbwrap_insert(&rb_tree, &kv_rb[i]->rb, cmp_func_rb);
     }
     gettimeofday(&end, NULL);
-    gap = _utime_gap(begin, end);
-    printf("RB-Tree insertion: %d.%d sec elapsed\n",
-        (int)gap.tv_sec, (int)gap.tv_usec);
+    result.gap = _utime_gap(begin, end);
+    result.op_type = 0;
+    gather_result(result);
 
     // rb-tree retrieval
     gettimeofday(&begin, NULL);
@@ -109,9 +142,9 @@ void do_test(size_t n, struct kv_node **kv, struct kv_node_rb **kv_rb)
         rb_node = rbwrap_search(&rb_tree, &query_rb.rb, cmp_func_rb);
     }
     gettimeofday(&end, NULL);
-    gap = _utime_gap(begin, end);
-    printf("RB-Tree retrieval: %d.%d sec elapsed\n",
-        (int)gap.tv_sec, (int)gap.tv_usec);
+    result.gap = _utime_gap(begin, end);
+    result.op_type = 1;
+    gather_result(result);
 
     // rb-tree range scan
     gettimeofday(&begin, NULL);
@@ -120,9 +153,9 @@ void do_test(size_t n, struct kv_node **kv, struct kv_node_rb **kv_rb)
         rb_node = rb_next(rb_node);
     }
     gettimeofday(&end, NULL);
-    gap = _utime_gap(begin, end);
-    printf("RB-Tree range scan: %d.%d sec elapsed\n",
-        (int)gap.tv_sec, (int)gap.tv_usec);
+    result.gap = _utime_gap(begin, end);
+    result.op_type = 2;
+    gather_result(result);
 
     // rb-tree removal
     gettimeofday(&begin, NULL);
@@ -133,9 +166,12 @@ void do_test(size_t n, struct kv_node **kv, struct kv_node_rb **kv_rb)
         rb_erase(&node_rb->rb, &rb_tree);
     }
     gettimeofday(&end, NULL);
-    gap = _utime_gap(begin, end);
-    printf("RB-Tree removal: %d.%d sec elapsed\n",
-        (int)gap.tv_sec, (int)gap.tv_usec);
+    result.gap = _utime_gap(begin, end);
+    result.op_type = 3;
+    gather_result(result);
+
+    // === avl-tree ===
+    result.index_type = 1;
 
     // avl-tree insertion
     gettimeofday(&begin, NULL);
@@ -143,9 +179,9 @@ void do_test(size_t n, struct kv_node **kv, struct kv_node_rb **kv_rb)
         avl_insert(&avl_tree, &kv[i]->avl, cmp_func);
     }
     gettimeofday(&end, NULL);
-    gap = _utime_gap(begin, end);
-    printf("AVL-Tree insertion: %d.%d sec elapsed\n",
-        (int)gap.tv_sec, (int)gap.tv_usec);
+    result.gap = _utime_gap(begin, end);
+    result.op_type = 0;
+    gather_result(result);
 
     // avl-tree retrieval
     gettimeofday(&begin, NULL);
@@ -154,9 +190,9 @@ void do_test(size_t n, struct kv_node **kv, struct kv_node_rb **kv_rb)
         avl_node = avl_search(&avl_tree, &query.avl, cmp_func);
     }
     gettimeofday(&end, NULL);
-    gap = _utime_gap(begin, end);
-    printf("AVL-Tree retrieval: %d.%d sec elapsed\n",
-        (int)gap.tv_sec, (int)gap.tv_usec);
+    result.gap = _utime_gap(begin, end);
+    result.op_type = 1;
+    gather_result(result);
 
     // avl-tree range scan
     gettimeofday(&begin, NULL);
@@ -165,9 +201,9 @@ void do_test(size_t n, struct kv_node **kv, struct kv_node_rb **kv_rb)
         avl_node = avl_next(avl_node);
     }
     gettimeofday(&end, NULL);
-    gap = _utime_gap(begin, end);
-    printf("AVL-Tree range scan: %d.%d sec elapsed\n",
-        (int)gap.tv_sec, (int)gap.tv_usec);
+    result.gap = _utime_gap(begin, end);
+    result.op_type = 2;
+    gather_result(result);
 
     // avl-tree removal
     gettimeofday(&begin, NULL);
@@ -178,15 +214,62 @@ void do_test(size_t n, struct kv_node **kv, struct kv_node_rb **kv_rb)
         avl_remove(&avl_tree, &node->avl);
     }
     gettimeofday(&end, NULL);
-    gap = _utime_gap(begin, end);
-    printf("AVL-Tree removal: %d.%d sec elapsed\n",
-        (int)gap.tv_sec, (int)gap.tv_usec);
+    result.gap = _utime_gap(begin, end);
+    result.op_type = 3;
+    gather_result(result);
+
+    // === STL set ===
+    std::set<uint32_t> stl_set;
+    result.index_type = 2;
+
+    // STL set insertion
+    gettimeofday(&begin, NULL);
+    for (i=0;i<n;++i){
+        stl_set.insert(kv[i]->key);
+    }
+    gettimeofday(&end, NULL);
+    result.gap = _utime_gap(begin, end);
+    result.op_type = 0;
+    gather_result(result);
+
+    // STL Set retrieval
+    gettimeofday(&begin, NULL);
+    for (i=0;i<n;++i){
+        auto set_itr = stl_set.find(i);
+        (void)set_itr;
+    }
+    gettimeofday(&end, NULL);
+    result.gap = _utime_gap(begin, end);
+    result.op_type = 1;
+    gather_result(result);
+
+    // STL Set range scan
+    gettimeofday(&begin, NULL);
+    auto set_itr_scan = stl_set.begin();
+    while(set_itr_scan != stl_set.end()) {
+        set_itr_scan++;
+    }
+    gettimeofday(&end, NULL);
+    result.gap = _utime_gap(begin, end);
+    result.op_type = 2;
+    gather_result(result);
+
+    // STL Set removal
+    gettimeofday(&begin, NULL);
+    set_itr_scan = stl_set.begin();
+    while(set_itr_scan != stl_set.end()) {
+        set_itr_scan = stl_set.erase(set_itr_scan);
+    }
+    gettimeofday(&end, NULL);
+    result.gap = _utime_gap(begin, end);
+    result.op_type = 3;
+    gather_result(result);
 }
 
 int main()
 {
     size_t i, r;
-    size_t n=10000000;
+    size_t n = 10000000;
     struct kv_node **kv, *temp;
     struct kv_node_rb **kv_rb, *temp_rb;
 

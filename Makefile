@@ -4,22 +4,24 @@ BENCH = bench/bench.o $(AVL_TREE) $(RB_TREE)
 EXAMPLE = example/avl_example.o $(AVL_TREE) 
 
 PROGRAMS = \
-	avltree_example \
-	bench_avl_rb \
+	avl_example \
+	avl_bench \
 	
-LDFLAGS = -lpthread
+LDFLAGS = 
+
 CFLAGS = \
 	-g -D_GNU_SOURCE \
 	-I. -I./avltree -I./rbtree \
-	-fPIC \
 	-O2 \
-	#-D__AVL_DEBUG \
-	
+	-Wall \
+
+CXXFLAGS = $(CFLAGS) --std=c++11 
+
 all: $(PROGRAMS)
 
-avltree_example: $(EXAMPLE)
+avl_example: $(EXAMPLE)
 	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
-bench_avl_rb: $(BENCH)
-	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
+avl_bench: $(BENCH)
+	$(CXX) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 clean:
 	rm -rf $(PROGRAMS) ./*.o ./*.so ./*/*.o ./*/*.so

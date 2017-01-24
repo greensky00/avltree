@@ -32,9 +32,9 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "avltree.h"
 
 struct kv_node{
+    struct avl_node avl;
     int key;
     int value;
-    struct avl_node avl;
 };
 
 int cmp_func(struct avl_node *a, struct avl_node *b, void *aux)
