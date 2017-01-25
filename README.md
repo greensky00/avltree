@@ -1,6 +1,8 @@
-AVL-Tree
+AVL-tree
 ========
-A high performance generic AVL-Tree container C implementation
+A high performance generic AVL-tree container C implementation.
+
+It can be used as a set or a map, containing any type of data.
 
 Author
 ======
@@ -91,7 +93,7 @@ $ ./avl_bench
 
 Estimated the throughput compared to RB-tree implementation in Linux kernel source code archive and 'set' in STL. Total 10M key-value pairs are used on a machine equipped with i7-3770 CPU (3.4GHz, 4-core 8-thread). The results are averaged over 5 runs, discarding the maximum and the minimum values.
 
-Overall, AVL-tree is up to 3x faster than STL set (or map).
+Overall, this AVL-tree implementation is up to 3x faster than STL set (or map).
 
 * Throughput (absolute number)
 
