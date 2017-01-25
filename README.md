@@ -1,66 +1,106 @@
 AVL-Tree
 ========
-A high-performance generic AVL-Tree C implementation
+A high performance generic AVL-Tree container C implementation
 
-author
+Author
 ======
 Jung-Sang Ahn <jungsang.ahn@gmail.com>
 
-build
+Build
 =====
-make
+```sh
+$ make
+```
 
-how to use
+How to use
 ==========
-refer to example/avl_example.c
+(refer to example/avl_example.c)
 
-simple benchmark
+Below example describes how to use AVL-tree as an ordered map of integer pairs.
+
+We define a node for an integer pair, and a comparison function of given two nodes:
+```C
+#include "avltree.h"
+
+struct kv_node{
+    struct avl_node avl;
+    int key;
+    int value;
+};
+
+int cmp_func(struct avl_node *a, struct avl_node *b, void *aux)
+{
+    struct node *aa, *bb;
+    aa = _get_entry(a, struct kv_node, avl);
+    bb = _get_entry(b, struct kv_node, avl);
+
+    if (aa->key < bb->key)
+        return -1;
+    else if (aa->key > bb->key)
+        return 1;
+    else
+        return 0;
+}
+```
+
+Example code:
+```C
+// initialize tree
+struct avl_tree tree;
+avl_init(&tree, NULL);
+
+// insert {1, 10} pair
+struct kv_node node;
+node.key = 1;
+node.value = 10;
+avl_insert(&tree, &node.avl, cmp_func);
+
+// insert {2, 20} pair
+struct kv_node node_another;
+node_another.key = 2;
+node_another.value = 20;
+avl_insert(&tree, &node_another.avl, cmp_func);
+
+// find the value corresponding to key '1'
+struct kv_node query, *ret_kv_node;
+struct avl_node *ret_avl_node;
+query.key = 1;
+ret = avl_search(&tree, &query.avl, cmp_func);
+ret_kv_node = _get_entry(ret, struct kv_node, avl);
+// Note: ret_kv_node == &node
+printf("%d\n", ret_kv_node->value); // 10
+
+// iteration
+ret = avl_first(&tree);
+while (ret) {
+	ret_kv_node = _get_entry(ret, struct kv_node, avl);
+	// ... do something with ret_kv_node ...
+	ret = avl_next(ret);
+}
+
+// remove the pair corresponding to key '1'
+query.key = 1;
+avl_remove(&tree, &query.avl);
+```
+
+Simple benchmark
 ================
-./bench_avl_rb
+```Sh
+$ ./avl_bench
+```
 
-We estimated the performance of our implementation compared to Red Black Tree implemented in Linux kernel source code archive. Total 10M key-value pairs are used on a machine equipped with i7-3770 CPU (3.4GHz, 4-core 8-thread). The results are averaged over 5 runs, discarding the maximum and the minimum values.
+Estimated the throughput compared to RB-tree implementation in Linux kernel source code archive and 'set' in STL. Total 10M key-value pairs are used on a machine equipped with i7-3770 CPU (3.4GHz, 4-core 8-thread). The results are averaged over 5 runs, discarding the maximum and the minimum values.
 
-== Sequential test ==
+Overall, AVL-tree is up to 3x faster than STL set (or map).
 
-* Red Black Tree (in Linux)
+* Throughput (absolute number)
 
-Insertion: 3,798,630 ops/sec
+![alt text](https://cloud.githubusercontent.com/assets/5001031/22307365/87d21794-e2f7-11e6-8515-b4b6bea1af3d.png "Throughput")
 
-Retrieval: 5,905,865 ops/sec
+* Throughput (normalized to STL set)
 
-Range scan: 30,821,390 ops/sec
-
-Removal: 43,072,629 ops/sec
-
-* AVL-Tree 
-
-Insertion: 6,993,814 ops/sec (84.11%)
-
-Retrieval: 5,938,835 ops/sec (0.56%)
-
-Range scan: 31,777,305 ops/sec (3.1%)
-
-Removal: 36,972,404 ops/sec (-14.16%)
+![alt text](https://cloud.githubusercontent.com/assets/5001031/22307367/8a378e9c-e2f7-11e6-8127-7ebef53147b1.png "Normalized Throughput")
 
 
-== Random test ==
 
-* Red Black Tree (in Linux)
-
-Insertion: 1,145,695 ops/sec
-
-Retrieval: 11,364,515 ops/sec
-
-Range scan: 32,776,246 ops/sec
-
-Removal: 39,278,686 ops/sec
-
-* AVL-Tree 
-
-Insertion: 1,118,304 ops/sec (-2.39%)
-
-Retrieval: 11,526,607 ops/sec (1.43%)
-
-Range scan: 35,078,365 ops/sec (7.02%)
-
-Removal: 30,172,648 ops/sec (-23.18%)
+----------
