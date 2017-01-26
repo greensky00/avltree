@@ -52,37 +52,43 @@ struct avl_tree tree;
 avl_init(&tree, NULL);
 
 // insert {1, 10} pair
-struct kv_node node;
-node.key = 1;
-node.value = 10;
-avl_insert(&tree, &node.avl, cmp_func);
+struct kv_node *node;
+node = (struct kv_node*)malloc(sizeof(struct kv_node));
+node->key = 1;
+node->value = 10;
+avl_insert(&tree, &node->avl, cmp_func);
 
 // insert {2, 20} pair
-struct kv_node node_another;
-node_another.key = 2;
-node_another.value = 20;
-avl_insert(&tree, &node_another.avl, cmp_func);
+node = (struct kv_node*)malloc(sizeof(struct kv_node));
+node->key = 2;
+node->value = 20;
+avl_insert(&tree, &node->avl, cmp_func);
 
 // find the value corresponding to key '1'
-struct kv_node query, *ret_kv_node;
-struct avl_node *ret_avl_node;
+struct kv_node query;
+struct avl_node *cursor;
 query.key = 1;
-ret = avl_search(&tree, &query.avl, cmp_func);
-ret_kv_node = _get_entry(ret, struct kv_node, avl);
-// Note: ret_kv_node == &node
-printf("%d\n", ret_kv_node->value); // 10
+cursor = avl_search(&tree, &query.avl, cmp_func);
+// get 'node' from 'cursor'
+node = _get_entry(cursor, struct kv_node, avl);
+printf("%d\n", node->value);    // display 10
 
 // iteration
-ret = avl_first(&tree);
-while (ret) {
-	ret_kv_node = _get_entry(ret, struct kv_node, avl);
-	// ... do something with ret_kv_node ...
-	ret = avl_next(ret);
+cursor = avl_first(&tree);
+while (cursor) {
+	node = _get_entry(cursor, struct kv_node, avl);
+	// ... do something with 'node' ...
+	cursor = avl_next(cursor);
 }
 
 // remove the pair corresponding to key '1'
 query.key = 1;
-avl_remove(&tree, &query.avl);
+cursor = avl_search(&tree, &query.avl, cmp_func);
+if (cursor) {
+    node = _get_entry(cursor, struct kv_node, avl);
+    avl_remove(&tree, cursor);
+    free(node);
+}
 ```
 
 Simple benchmark
@@ -91,7 +97,7 @@ Simple benchmark
 $ ./avl_bench
 ```
 
-Estimated the throughput compared to RB-tree implementation in Linux kernel source code archive and 'set' in STL. Total 10M key-value pairs are used on a machine equipped with i7-3770 CPU (3.4GHz, 4-core 8-thread). The results are averaged over 5 runs, discarding the maximum and the minimum values.
+Estimated the throughput of primitive operations compared to RB-tree implementation in Linux kernel source code archive and 'set' in STL. Total 10M key-value pairs are used on a machine equipped with i7-3770 CPU (3.4GHz, 4-core 8-thread). The results are averaged over 5 runs, discarding the maximum and the minimum values.
 
 Overall, this AVL-tree implementation is up to 3x faster than STL set (or map).
 
