@@ -1,26 +1,27 @@
 AVL-tree
-========
+--------
 A high performance generic AVL-tree container C implementation.
 
 It can be used as a set or a map, containing any type of data.
 
 Author
-======
+------
 Jung-Sang Ahn <jungsang.ahn@gmail.com>
 
 Build
-=====
+-----
 ```sh
 $ make
 ```
 
 How to use
-==========
-(refer to example/avl_example.c)
+----------
+(refer to `example/avl_example.c`)
 
 Below example describes how to use AVL-tree as an ordered map of integer pairs.
 
 We define a node for an integer pair, and a comparison function of given two nodes:
+
 ```C
 #include "avltree.h"
 
@@ -123,7 +124,7 @@ if (cursor) {
 ```
 
 Simple benchmark
-================
+----------------
 ```Sh
 $ ./avl_bench
 ```
