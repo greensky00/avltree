@@ -26,6 +26,7 @@ We define a node for an integer pair, and a comparison function of given two nod
 
 struct kv_node{
     struct avl_node avl;
+    // put your data here
     int key;
     int value;
 };
@@ -46,47 +47,77 @@ int cmp_func(struct avl_node *a, struct avl_node *b, void *aux)
 ```
 
 Example code:
-```C
-// initialize tree
-struct avl_tree tree;
-avl_init(&tree, NULL);
 
-// insert {1, 10} pair
+* Initialize tree
+```C
+struct avl_tree tree;
+
+avl_init(&tree, NULL);
+```
+
+* Insert ```{1, 10}``` pair
+```C
 struct kv_node *node;
+
 node = (struct kv_node*)malloc(sizeof(struct kv_node));
+
 node->key = 1;
 node->value = 10;
 avl_insert(&tree, &node->avl, cmp_func);
+```
+* Insert ```{2, 20}``` pair
+```C
+struct kv_node *node;
 
-// insert {2, 20} pair
 node = (struct kv_node*)malloc(sizeof(struct kv_node));
+
 node->key = 2;
 node->value = 20;
 avl_insert(&tree, &node->avl, cmp_func);
-
-// find the value corresponding to key '1'
+```
+* Find the value corresponding to key `1`
+```C
 struct kv_node query;
+struct kv_node *node;
 struct avl_node *cursor;
+
 query.key = 1;
 cursor = avl_search(&tree, &query.avl, cmp_func);
+
 // get 'node' from 'cursor'
 node = _get_entry(cursor, struct kv_node, avl);
-printf("%d\n", node->value);    // display 10
+printf("%d\n", node->value);    // it will display 10
+```
+* Iteration
+```C
+struct kv_node *node;
+struct avl_node *cursor;
 
-// iteration
 cursor = avl_first(&tree);
 while (cursor) {
-	node = _get_entry(cursor, struct kv_node, avl);
-	// ... do something with 'node' ...
-	cursor = avl_next(cursor);
-}
+    // get 'node' from 'cursor'
+    node = _get_entry(cursor, struct kv_node, avl);
 
-// remove the pair corresponding to key '1'
+    // ... do something with 'node' ...
+
+    // get next cursor
+    cursor = avl_next(cursor);
+}
+```
+* Remove the key-value pair corresponding to key `1`
+```C
+struct kv_node query;
+struct kv_node *node;
+struct avl_node *cursor;
+
 query.key = 1;
 cursor = avl_search(&tree, &query.avl, cmp_func);
 if (cursor) {
+    // get 'node' from 'cursor'
     node = _get_entry(cursor, struct kv_node, avl);
+    // remove from tree
     avl_remove(&tree, cursor);
+    // free 'node'
     free(node);
 }
 ```
