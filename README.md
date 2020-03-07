@@ -34,7 +34,7 @@ struct kv_node{
 
 int cmp_func(struct avl_node *a, struct avl_node *b, void *aux)
 {
-    struct node *aa, *bb;
+    struct kv_node *aa, *bb;
     aa = _get_entry(a, struct kv_node, avl);
     bb = _get_entry(b, struct kv_node, avl);
 
