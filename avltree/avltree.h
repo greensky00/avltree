@@ -2,7 +2,7 @@
 Copyright (C) 2014-present Jung-Sang Ahn <jungsang.ahn@gmail.com>
 All rights reserved.
 
-Last modification: Nov 30, 2014
+Last modification: Jan 03, 2021
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -58,12 +58,12 @@ struct avl_tree{
 #endif
 
 #define avl_parent(node) \
-        ((struct avl_node *)((uint64_t)(node)->parent & ~0x3))
+        ((struct avl_node *)((uintptr_t)(node)->parent & ~0x3))
 
 #ifdef _AVL_SEPARATE_PARENT_BF
     #define avl_bf(node) ((node)->bf)
 #else
-    #define avl_bf(node) (((int)((uint64_t)(node)->parent & 0x3)) - 1)
+    #define avl_bf(node) (((int)((uintptr_t)(node)->parent & 0x3)) - 1)
 #endif
 
 // *a < *b : return neg

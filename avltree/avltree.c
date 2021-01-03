@@ -2,7 +2,7 @@
 Copyright (C) 2014-present Jung-Sang Ahn <jungsang.ahn@gmail.com>
 All rights reserved.
 
-Last modification: Jan 20, 2017
+Last modification: Jan 03, 2021
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -30,7 +30,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     #ifdef __APPLE__
         #define INLINE extern inline
     #elif __linux__
-        #define INLINE __inline
+        #define INLINE static inline
     #else
         #define INLINE
     #endif
@@ -48,7 +48,7 @@ INLINE int _abs(int n) {
 INLINE void avl_set_parent(struct avl_node *node, struct avl_node *parent)
 {
     node->parent = (struct avl_node *)(
-        (uint64_t)parent | ((uint64_t)node->parent & 0x3));
+        (uintptr_t)parent | ((uintptr_t)node->parent & 0x3));
 }
 
 #ifdef __AVL_DEBUG
@@ -74,7 +74,7 @@ INLINE void avl_set_bf(struct avl_node *node, int bf)
     node->bf = bf;
 #else
     node->parent = (struct avl_node *)(
-        (uint64_t)avl_parent(node) | (uint64_t)(bf+1));
+        (uintptr_t)avl_parent(node) | (uintptr_t)(bf+1));
 #endif
 }
 
